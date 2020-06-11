@@ -1,9 +1,7 @@
 # Change Log
 
-All notable changes to the "explumber" extension will be documented in this file.
+## [0.0.1]
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-
-- Initial release
+- Add commands to:
+  - Convert from pipe operators into function calls
+  - Convert function calls into pipe operators

@@ -1,23 +1,28 @@
 {
   "name": "explumber",
   "displayName": "ExPlumber",
-  "description": "Extension to convert between function calls and pipes in Elixir",
+  "description": "Extension to convert between function calls and pipe operators in Elixir",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.45.0"
   },
   "categories": [
-    "Other"
+    "Formatters"
   ],
   "activationEvents": [
-    "onCommand:explumber.convertFunctionToPipe"
+    "onCommand:explumber.convertFunctionToPipe",
+    "onCommand:explumber.convertPipeToFunctionCall"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "explumber.convertFunctionToPipe",
-        "title": "ExPlumber: Convert call at cursor to Pipe"
+        "title": "(ExPlumber) To Pipe: Convert selected function call(s) to pipe(s)"
+      },
+      {
+        "command": "explumber.convertPipeToFunctionCall",
+        "title": "(ExPlumber) From pipe:  Convert selected pipe(s) to function call(s)"
       }
     ]
   },

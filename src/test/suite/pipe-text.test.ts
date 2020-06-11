@@ -4,7 +4,7 @@ import * as assert from "assert";
 // as well as import your extension to test it
 import * as vscode from "vscode";
 import { pipeText, textRangeRegExp } from "../../lib/pipe-text";
-import { samples, multiLineSamples } from "./fixtures/samples";
+import { samples, multiLineSamples } from "./fixtures/pipe-text";
 
 suite("Unit tests for the pipeText function", () => {
   vscode.window.showInformationMessage("Starting unit tests for pipeText.");

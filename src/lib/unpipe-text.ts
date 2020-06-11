@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 
-type toPipeResults = {
-  pipedText: string;
+type fromPipeResults = {
+  unpipedText: string;
   functionCallRange: vscode.Range;
 };
 
-export const convertCallToPipe = () => {
+export const convertPipeToFunctionCall = () => {
   const editor = vscode.window.activeTextEditor;
 
   if (!editor) return;
@@ -18,33 +18,36 @@ export const convertCallToPipe = () => {
 
   editor?.edit((edit) => {
     for (const {
-      pipedText,
+      unpipedText,
       functionCallRange,
-    } of handledSelections as toPipeResults[]) {
-      edit.replace(functionCallRange as vscode.Range, pipedText);
+    } of handledSelections as fromPipeResults[]) {
+      edit.replace(functionCallRange as vscode.Range, unpipedText);
     }
   });
 };
 
-export const pipeText = (text: string) => {
-  const splitAtParen = text.split("(");
-  const functionName = splitAtParen[0].trim();
-  const args = splitAtParen[1].split(",");
-  const indentation = /\s*/.exec(text);
+export const textRangeRegExp = /(\S+)\s*\|>\s*([^\(]+)\(([^\)]*)/m;
 
-  const firstArg = args[0].trim();
-  const otherArgsList = args.slice(1);
-  const otherArgs = otherArgsList ? otherArgsList.join(",") : "";
+export const unpipeText = (text: string) => {
+  const result = textRangeRegExp.exec(text);
+  if (!result) return text;
+  console.log(result);
 
-  return `${indentation}${firstArg} |> ${functionName}(${otherArgs.trimLeft()}`;
+  const [_, left, functionName, afterParen] = result;
+
+  console.log("left", left);
+  console.log("functionName", functionName);
+  console.log("afterParen", afterParen);
+
+  const formattedArgs = afterParen ? `${left}, ${afterParen}` : left;
+
+  return `${functionName}(${formattedArgs}`;
 };
-
-export const textRangeRegExp = /\w+\.?\([^\(\)]*/m;
 
 const handleSingleLine = (
   editor: vscode.TextEditor,
   selection: vscode.Selection
-): toPipeResults | undefined => {
+): fromPipeResults | undefined => {
   const currentDoc = editor?.document;
   const position = selection.active;
   const functionCallRange = currentDoc.getWordRangeAtPosition(
@@ -52,33 +55,33 @@ const handleSingleLine = (
     textRangeRegExp
   );
   const functionCallText = currentDoc.getText(functionCallRange);
-  if (!functionCallRange) return;
+  if (!functionCallRange) return undefined;
 
-  const pipedText = pipeText(functionCallText);
+  const unpipedText = unpipeText(functionCallText);
 
-  return { pipedText, functionCallRange };
+  return { unpipedText, functionCallRange };
 };
 
 const handleMultiLine = (
   editor: vscode.TextEditor,
   selection: vscode.Selection
-): toPipeResults | undefined => {
+): fromPipeResults | undefined => {
   console.log(selection);
 
   const original = editor.document.getText(selection);
   const [extracted] = textRangeRegExp.exec(original) as string[];
   if (typeof extracted !== "string") return undefined;
-  const formatted = pipeText(extracted);
+  const formatted = unpipeText(extracted);
 
-  const pipedText = original.replace(textRangeRegExp, formatted);
+  const unpipedText = original.replace(textRangeRegExp, formatted);
 
-  return { pipedText, functionCallRange: selection };
+  return { unpipedText, functionCallRange: selection };
 };
 
 const handleSelection = (
   editor: vscode.TextEditor,
   selection: vscode.Selection
-): toPipeResults | undefined => {
+): fromPipeResults | undefined => {
   return selection.isSingleLine
     ? handleSingleLine(editor, selection)
     : handleMultiLine(editor, selection);
