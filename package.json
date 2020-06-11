@@ -1,27 +1,37 @@
 {
-  "name": "explumber",
+  "name": "ex-plumber",
   "displayName": "ExPlumber",
   "description": "Extension to convert between function calls and pipe operators in Elixir",
   "version": "0.0.1",
+  "publisher": "polvalente",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/polvalente/ex-plumber"
+  },
   "engines": {
     "vscode": "^1.45.0"
   },
   "categories": [
     "Formatters"
   ],
+  "license": "SEE LICENSE IN LICENSE.MD",
   "activationEvents": [
-    "onCommand:explumber.convertFunctionToPipe",
-    "onCommand:explumber.convertPipeToFunctionCall"
+    "onCommand:ex-plumber.convertFunctionToPipe",
+    "onCommand:ex-plumber.convertPipeToFunctionCall"
+  ],
+  "keywords": [
+    "elixir",
+    "formatter"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "explumber.convertFunctionToPipe",
+        "command": "ex-plumber.convertFunctionToPipe",
         "title": "(ExPlumber) To Pipe: Convert selected function call(s) to pipe(s)"
       },
       {
-        "command": "explumber.convertPipeToFunctionCall",
+        "command": "ex-plumber.convertPipeToFunctionCall",
         "title": "(ExPlumber) From pipe:  Convert selected pipe(s) to function call(s)"
       }
     ]

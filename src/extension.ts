@@ -11,9 +11,9 @@ export function activate(context: vscode.ExtensionContext) {
   console.log("ExPlumber is now active!");
 
   const commands = [
-    { name: "explumber.convertFunctionToPipe", callback: convertCallToPipe },
+    { name: "ex-plumber.convertFunctionToPipe", callback: convertCallToPipe },
     {
-      name: "explumber.convertPipeToFunctionCall",
+      name: "ex-plumber.convertPipeToFunctionCall",
       callback: convertPipeToFunctionCall,
     },
   ];
