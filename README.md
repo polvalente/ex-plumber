@@ -6,7 +6,6 @@ This is an unnoficial extension for processing [Elixir](http://elixir-lang.org) 
 
 ## Known Issues
 
-- `g(f(a), b, c)` doesn't work properly because the extension does not deal with nesting parens.
 - `a |> b |> f(c)` does not work because `b` is not recognized as a function call.
 
 ## Contributing

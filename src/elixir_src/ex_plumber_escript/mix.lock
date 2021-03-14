@@ -1,0 +1,3 @@
+%{
+  "elixir_sense": {:hex, :elixir_sense, "1.0.0", "ae4313b90e5564bd8b66aaed823b5e5f586db0dbb8849b7c4b7e07698c0df7bc", [:mix], [], "hexpm", "6a3baef02859e3e1a7d6f355ad6a4fc962ec56cb0f396a8be2bd8091aaa28821"},
+}

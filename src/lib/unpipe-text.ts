@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { execSync } from "child_process";
 
 type fromPipeResults = {
   unpipedText: string;
@@ -8,13 +9,17 @@ type fromPipeResults = {
 export const convertPipeToFunctionCall = () => {
   const editor = vscode.window.activeTextEditor;
 
-  if (!editor) return;
+  if (!editor) {
+    return;
+  }
 
   const handledSelections = editor.selections
     .map((selection) => handleSelection(editor, selection))
     .filter((selection) => selection);
 
-  if (!handledSelections) return;
+  if (!handledSelections) {
+    return;
+  }
 
   editor?.edit((edit) => {
     for (const {
@@ -26,22 +31,17 @@ export const convertPipeToFunctionCall = () => {
   });
 };
 
-export const textRangeRegExp = /(\S+)\s*\|>\s*([^\(]+)\(([^\)]*)/m;
+export const textRangeRegExp = /([^\s;]+)\s*\|>\s*([^\(]+)\(([^\)]*)/m;
 
 export const unpipeText = (text: string) => {
-  const result = textRangeRegExp.exec(text);
-  if (!result) return text;
-  console.log(result);
-
-  const [_, left, functionName, afterParen] = result;
-
-  console.log("left", left);
-  console.log("functionName", functionName);
-  console.log("afterParen", afterParen);
-
-  const formattedArgs = afterParen ? `${left}, ${afterParen}` : left;
-
-  return `${functionName}(${formattedArgs}`;
+  return execSync(
+    `./src/elixir_src/ex_plumber_escript/ex_plumber_escript --direction from_pipe --length ${text.length}`,
+    {
+      input: text,
+    }
+  )
+    .toString()
+    .trim();
 };
 
 const handleSingleLine = (
@@ -54,10 +54,13 @@ const handleSingleLine = (
     position,
     textRangeRegExp
   );
-  const functionCallText = currentDoc.getText(functionCallRange);
-  if (!functionCallRange) return undefined;
 
-  const unpipedText = unpipeText(functionCallText);
+  const original = currentDoc.getText(functionCallRange);
+  if (!functionCallRange) {
+    return undefined;
+  }
+
+  const unpipedText = unpipeText(original);
 
   return { unpipedText, functionCallRange };
 };
@@ -66,11 +69,11 @@ const handleMultiLine = (
   editor: vscode.TextEditor,
   selection: vscode.Selection
 ): fromPipeResults | undefined => {
-  console.log(selection);
-
   const original = editor.document.getText(selection);
   const [extracted] = textRangeRegExp.exec(original) as string[];
-  if (typeof extracted !== "string") return undefined;
+  if (typeof extracted !== "string") {
+    return undefined;
+  }
   const formatted = unpipeText(extracted);
 
   const unpipedText = original.replace(textRangeRegExp, formatted);

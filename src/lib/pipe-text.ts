@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { execSync } from "child_process";
 
 type toPipeResults = {
   pipedText: string;
@@ -8,13 +9,17 @@ type toPipeResults = {
 export const convertCallToPipe = () => {
   const editor = vscode.window.activeTextEditor;
 
-  if (!editor) return;
+  if (!editor) {
+    return;
+  }
 
   const handledSelections = editor.selections
     .map((selection) => handleSelection(editor, selection))
     .filter((selection) => selection);
 
-  if (!handledSelections) return;
+  if (!handledSelections) {
+    return;
+  }
 
   editor?.edit((edit) => {
     for (const {
@@ -27,19 +32,17 @@ export const convertCallToPipe = () => {
 };
 
 export const pipeText = (text: string) => {
-  const splitAtParen = text.split("(");
-  const functionName = splitAtParen[0].trim();
-  const args = splitAtParen[1].split(",");
-  const indentation = /\s*/.exec(text);
-
-  const firstArg = args[0].trim();
-  const otherArgsList = args.slice(1);
-  const otherArgs = otherArgsList ? otherArgsList.join(",") : "";
-
-  return `${indentation}${firstArg} |> ${functionName}(${otherArgs.trimLeft()}`;
+  return execSync(
+    `./src/elixir_src/ex_plumber_escript/ex_plumber_escript --direction to_pipe --length ${text.length}`,
+    {
+      input: text,
+    }
+  )
+    .toString()
+    .trim();
 };
 
-export const textRangeRegExp = /\w+\.?\([^\(\)]*/m;
+export const textRangeRegExp = /(\w+\.)*\w+\.?\([^\)]*/m;
 
 const handleSingleLine = (
   editor: vscode.TextEditor,
@@ -52,7 +55,9 @@ const handleSingleLine = (
     textRangeRegExp
   );
   const functionCallText = currentDoc.getText(functionCallRange);
-  if (!functionCallRange) return;
+  if (!functionCallRange) {
+    return;
+  }
 
   const pipedText = pipeText(functionCallText);
 
@@ -63,11 +68,11 @@ const handleMultiLine = (
   editor: vscode.TextEditor,
   selection: vscode.Selection
 ): toPipeResults | undefined => {
-  console.log(selection);
-
   const original = editor.document.getText(selection);
   const [extracted] = textRangeRegExp.exec(original) as string[];
-  if (typeof extracted !== "string") return undefined;
+  if (typeof extracted !== "string") {
+    return undefined;
+  }
   const formatted = pipeText(extracted);
 
   const pipedText = original.replace(textRangeRegExp, formatted);
