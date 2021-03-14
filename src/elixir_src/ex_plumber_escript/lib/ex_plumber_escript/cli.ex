@@ -7,14 +7,14 @@ defmodule ExPlumberEscript.CLI do
 
   ## Examples
 
-      iex> ExPlumberEscript.CLI.main(["--direction", "from_pipe", "--", "a |> f(b, c, d, e) |> g(h)"])
+      iex> "a |> f(b, c, d, e) |> g(h)" |> Code.string_to_quoted!() |> ExPlumberEscript.CLI.from_pipe() |> Macro.to_string()
       "f(a, b, c, d, e) |> g(h)"
-      iex> ExPlumberEscript.CLI.main(["--direction", "from_pipe", "--", "f(a, b, c, d, e) |> g(h)"])
+      iex> "f(a, b, c, d, e) |> g(h)" |> Code.string_to_quoted!() |> ExPlumberEscript.CLI.from_pipe() |> Macro.to_string()
       "g(f(a, b, c, d, e), h)"
 
-      iex> ExPlumberEscript.CLI.main(["--direction", "to_pipe", "--", "g(f(a, b, c, d, e), h)"])
+      iex> "g(f(a, b, c, d, e), h)" |> Code.string_to_quoted!() |> ExPlumberEscript.CLI.to_pipe() |> Macro.to_string()
       "f(a, b, c, d, e) |> g(h)"
-      iex> ExPlumberEscript.CLI.main(["--direction", "to_pipe", "--", "f(a, b, c, d, e) |> g(h)"])
+      iex> "f(a, b, c, d, e) |> g(h)" |> Code.string_to_quoted!() |> ExPlumberEscript.CLI.to_pipe() |> Macro.to_string()
       "a |> f(b, c, d, e) |> g(h)"
 
       iex> code = "a |> f(b, c, d, e) |> g(h)"
@@ -38,20 +38,28 @@ defmodule ExPlumberEscript.CLI do
   """
 
   def main(cli_args) do
-    {args, [], []} = OptionParser.parse(cli_args, strict: [direction: :string])
+    {args, [], []} = OptionParser.parse(cli_args, strict: [direction: :string, length: :integer])
     direction = args[:direction] || raise "--direction is required"
+    len = args[:length] || raise "--length is required"
 
-    code = IO.read(:stdio, :line)
+    code = IO.read(:stdio, len)
 
-    {quoted, suffix} = to_quoted(code)
+    {quoted, suffix} =
+      code
+      |> String.trim()
+      |> to_quoted()
 
     result =
       case direction do
         "from_pipe" ->
-          quoted |> from_pipe() |> Macro.to_string()
+          quoted
+          |> from_pipe()
+          |> Macro.to_string()
 
         "to_pipe" ->
-          quoted |> to_pipe() |> Macro.to_string()
+          quoted
+          |> to_pipe()
+          |> Macro.to_string()
       end
 
     IO.puts(String.trim_trailing(result, suffix))
@@ -79,11 +87,20 @@ defmodule ExPlumberEscript.CLI do
     {{:|>, line, [left |> to_pipe(acc) |> elem(0), right]}, Map.put(acc, :has_piped, true)}
   end
 
-  defp to_pipe({{:., line, args} = function, meta, [h | t]}, %{has_piped: false} = acc) do
+  defp to_pipe(
+         {{:., line, [{_, _, nil}]} = anonymous_function_node, _meta, [h | t]},
+         %{has_piped: false} = acc
+       ) do
+    {{:|>, line, [h, {anonymous_function_node, line, t}]}, Map.put(acc, :has_piped, true)}
+  end
+
+  defp to_pipe({{:., line, _args} = function, _meta, [h | t]}, %{has_piped: false} = acc)
+       when t != [] do
     {{:|>, line, [h, {function, line, t}]}, Map.put(acc, :has_piped, true)}
   end
 
-  defp to_pipe({function, line, [h | t]}, %{has_piped: false} = acc) when is_atom(function) do
+  defp to_pipe({function, line, [h | t]}, %{has_piped: false} = acc)
+       when is_atom(function) and t != [] do
     {{:|>, line, [h, {function, line, t}]}, Map.put(acc, :has_piped, true)}
   end
 

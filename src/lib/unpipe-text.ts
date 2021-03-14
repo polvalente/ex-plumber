@@ -31,13 +31,8 @@ export const textRangeRegExp = /(\S+)\s*\|>\s*([^\(]+)\(([^\)]*)/m;
 export const unpipeText = (text: string) => {
   const result = textRangeRegExp.exec(text);
   if (!result) return text;
-  console.log(result);
 
   const [_, left, functionName, afterParen] = result;
-
-  console.log("left", left);
-  console.log("functionName", functionName);
-  console.log("afterParen", afterParen);
 
   const formattedArgs = afterParen ? `${left}, ${afterParen}` : left;
 
@@ -66,8 +61,6 @@ const handleMultiLine = (
   editor: vscode.TextEditor,
   selection: vscode.Selection
 ): fromPipeResults | undefined => {
-  console.log(selection);
-
   const original = editor.document.getText(selection);
   const [extracted] = textRangeRegExp.exec(original) as string[];
   if (typeof extracted !== "string") return undefined;

@@ -29,9 +29,8 @@ export const convertCallToPipe = () => {
 };
 
 export const pipeText = (text: string) => {
-  console.log(text);
   return execSync(
-    `./src/elixir_src/ex_plumber_escript/ex_plumber_escript --direction to_pipe`,
+    `./src/elixir_src/ex_plumber_escript/ex_plumber_escript --direction to_pipe --length ${text.length}`,
     {
       input: text,
     }
@@ -64,8 +63,6 @@ const handleMultiLine = (
   editor: vscode.TextEditor,
   selection: vscode.Selection
 ): toPipeResults | undefined => {
-  console.log(selection);
-
   const original = editor.document.getText(selection);
   const [extracted] = textRangeRegExp.exec(original) as string[];
   if (typeof extracted !== "string") return undefined;
