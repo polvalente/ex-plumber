@@ -6,7 +6,7 @@ import * as vscode from "vscode";
 import { unpipeText, textRangeRegExp } from "../../lib/unpipe-text";
 import { samples, multiLineSamples } from "./fixtures/unpipe-text";
 
-suite("Unit tests for the pipeText function", () => {
+suite("Unit tests for the unpipeText function", () => {
   vscode.window.showInformationMessage("Starting unit tests for pipeText.");
 
   samples.forEach(({ name, piped, unpiped }) => {

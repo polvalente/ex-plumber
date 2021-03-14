@@ -5,6 +5,16 @@ export const samples = [
     unpiped: "function_name(a, b, c) |> after_call",
   },
   {
+    name: "pipe chain",
+    piped: "a |> b() |> function_name(c, d) |> after_call",
+    unpiped: "b(a) |> function_name(c, d) |> after_call",
+  },
+  {
+    name: "pipe chain with no raw start",
+    piped: "b(a) |> function_name(c, d) |> after_call",
+    unpiped: "function_name(b(a), c, d) |> after_call",
+  },
+  {
     name: "single arg in named function",
     piped: "a |> function_name() |> after_call",
     unpiped: "function_name(a) |> after_call",

@@ -33,19 +33,6 @@ export const convertPipeToFunctionCall = () => {
 
 export const textRangeRegExp = /([^\s;]+)\s*\|>\s*([^\(]+)\(([^\)]*)/m;
 
-// export const unpipeText = (text: string) => {
-//   const result = textRangeRegExp.exec(text);
-//   if (!result) {
-//     return text;
-//   }
-
-//   const [_, left, functionName, afterParen] = result;
-
-//   const formattedArgs = afterParen ? `${left}, ${afterParen}` : left;
-
-//   return `${functionName}(${formattedArgs}`;
-// };
-
 export const unpipeText = (text: string) => {
   return execSync(
     `./src/elixir_src/ex_plumber_escript/ex_plumber_escript --direction from_pipe --length ${text.length}`,
