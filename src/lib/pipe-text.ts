@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import { execSync } from "child_process";
-import { promisify } from "util";
 
 type toPipeResults = {
   pipedText: string;

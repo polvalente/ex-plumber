@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { execSync } from "child_process";
 
 type fromPipeResults = {
   unpipedText: string;
@@ -30,19 +31,30 @@ export const convertPipeToFunctionCall = () => {
   });
 };
 
-export const textRangeRegExp = /(\S+)\s*\|>\s*([^\(]+)\(([^\)]*)/m;
+export const textRangeRegExp = /([^\s;]+)\s*\|>\s*([^\(]+)\(([^\)]*)/m;
+
+// export const unpipeText = (text: string) => {
+//   const result = textRangeRegExp.exec(text);
+//   if (!result) {
+//     return text;
+//   }
+
+//   const [_, left, functionName, afterParen] = result;
+
+//   const formattedArgs = afterParen ? `${left}, ${afterParen}` : left;
+
+//   return `${functionName}(${formattedArgs}`;
+// };
 
 export const unpipeText = (text: string) => {
-  const result = textRangeRegExp.exec(text);
-  if (!result) {
-    return text;
-  }
-
-  const [_, left, functionName, afterParen] = result;
-
-  const formattedArgs = afterParen ? `${left}, ${afterParen}` : left;
-
-  return `${functionName}(${formattedArgs}`;
+  return execSync(
+    `./src/elixir_src/ex_plumber_escript/ex_plumber_escript --direction from_pipe --length ${text.length}`,
+    {
+      input: text,
+    }
+  )
+    .toString()
+    .trim();
 };
 
 const handleSingleLine = (
@@ -55,12 +67,13 @@ const handleSingleLine = (
     position,
     textRangeRegExp
   );
-  const functionCallText = currentDoc.getText(functionCallRange);
+
+  const original = currentDoc.getText(functionCallRange);
   if (!functionCallRange) {
     return undefined;
   }
 
-  const unpipedText = unpipeText(functionCallText);
+  const unpipedText = unpipeText(original);
 
   return { unpipedText, functionCallRange };
 };

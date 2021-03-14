@@ -10,15 +10,14 @@ suite("Unit tests for the pipeText function", () => {
   vscode.window.showInformationMessage("Starting unit tests for pipeText.");
 
   samples.forEach(({ name, piped, unpiped }) => {
-    test(`Should convert from pipe with ${name}`, () => {
-      const processed = unpipeText(piped);
-      const result = piped.replace(textRangeRegExp, processed);
+    test(`single-line Should convert from pipe with ${name}`, () => {
+      const result = unpipeText(piped);
       assert.equal(result, unpiped);
     });
   });
 
   multiLineSamples.forEach(({ name, piped, unpiped }) => {
-    test(`Should convert from pipe with ${name}`, () => {
+    test(`multi-line Should convert from pipe with ${name}`, () => {
       const [selected] = textRangeRegExp.exec(piped) as string[];
       assert(typeof selected === "string");
       const processed = unpipeText(selected);

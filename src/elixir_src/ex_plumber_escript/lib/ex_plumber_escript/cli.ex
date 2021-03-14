@@ -54,20 +54,38 @@ defmodule ExPlumberEscript.CLI do
         "from_pipe" ->
           quoted
           |> from_pipe()
-          |> Macro.to_string()
+          |> macro_to_string()
 
         "to_pipe" ->
           quoted
           |> to_pipe()
-          |> Macro.to_string()
+          |> macro_to_string()
       end
 
-    IO.puts(String.trim_trailing(result, suffix))
+    case suffix do
+      "" ->
+        IO.puts(result)
+
+      suffix ->
+        IO.puts(String.trim_trailing(result, suffix))
+    end
   end
+
+  defp macro_to_string({:__block__, _, statements}) do
+    statements
+    |> Enum.map(&Macro.to_string/1)
+    |> Enum.join("; ")
+  end
+
+  defp macro_to_string(statement), do: Macro.to_string(statement)
 
   def from_pipe(code) do
     code
     |> Macro.postwalk(%{has_unpiped: false}, fn
+      {:|>, line, [h, {{:., line, [{_, _, nil}]} = anonymous_function_node, line, t}]},
+      %{has_unpiped: false} = acc ->
+        {{anonymous_function_node, line, [h | t]}, Map.put(acc, :has_unpiped, true)}
+
       {:|>, line, [left, {function, _, args}]}, %{has_unpiped: false} = acc ->
         {{function, line, [left | args]}, Map.put(acc, :has_unpiped, true)}
 
@@ -117,7 +135,7 @@ defmodule ExPlumberEscript.CLI do
         to_quoted(str <> x, suffix <> x)
 
       err ->
-        err
+        raise inspect(err)
     end
   end
 end
