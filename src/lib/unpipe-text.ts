@@ -8,13 +8,17 @@ type fromPipeResults = {
 export const convertPipeToFunctionCall = () => {
   const editor = vscode.window.activeTextEditor;
 
-  if (!editor) return;
+  if (!editor) {
+    return;
+  }
 
   const handledSelections = editor.selections
     .map((selection) => handleSelection(editor, selection))
     .filter((selection) => selection);
 
-  if (!handledSelections) return;
+  if (!handledSelections) {
+    return;
+  }
 
   editor?.edit((edit) => {
     for (const {
@@ -30,7 +34,9 @@ export const textRangeRegExp = /(\S+)\s*\|>\s*([^\(]+)\(([^\)]*)/m;
 
 export const unpipeText = (text: string) => {
   const result = textRangeRegExp.exec(text);
-  if (!result) return text;
+  if (!result) {
+    return text;
+  }
 
   const [_, left, functionName, afterParen] = result;
 
@@ -50,7 +56,9 @@ const handleSingleLine = (
     textRangeRegExp
   );
   const functionCallText = currentDoc.getText(functionCallRange);
-  if (!functionCallRange) return undefined;
+  if (!functionCallRange) {
+    return undefined;
+  }
 
   const unpipedText = unpipeText(functionCallText);
 
@@ -63,7 +71,9 @@ const handleMultiLine = (
 ): fromPipeResults | undefined => {
   const original = editor.document.getText(selection);
   const [extracted] = textRangeRegExp.exec(original) as string[];
-  if (typeof extracted !== "string") return undefined;
+  if (typeof extracted !== "string") {
+    return undefined;
+  }
   const formatted = unpipeText(extracted);
 
   const unpipedText = original.replace(textRangeRegExp, formatted);
