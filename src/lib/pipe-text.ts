@@ -1,4 +1,6 @@
 import * as vscode from "vscode";
+import { execSync } from "child_process";
+import { promisify } from "util";
 
 type toPipeResults = {
   pipedText: string;
@@ -27,19 +29,18 @@ export const convertCallToPipe = () => {
 };
 
 export const pipeText = (text: string) => {
-  const splitAtParen = text.split("(");
-  const functionName = splitAtParen[0].trim();
-  const args = splitAtParen[1].split(",");
-  const indentation = /\s*/.exec(text);
-
-  const firstArg = args[0].trim();
-  const otherArgsList = args.slice(1);
-  const otherArgs = otherArgsList ? otherArgsList.join(",") : "";
-
-  return `${indentation}${firstArg} |> ${functionName}(${otherArgs.trimLeft()}`;
+  console.log(text);
+  return execSync(
+    `./src/elixir_src/ex_plumber_escript/ex_plumber_escript --direction to_pipe`,
+    {
+      input: text,
+    }
+  )
+    .toString()
+    .trim();
 };
 
-export const textRangeRegExp = /\w+\.?\([^\(\)]*/m;
+export const textRangeRegExp = /(\w+\.)*\w+\.?\([^\)]*/m;
 
 const handleSingleLine = (
   editor: vscode.TextEditor,

@@ -43,16 +43,18 @@ defmodule ExPlumberEscript.CLI do
 
     code = IO.read(:stdio, :line)
 
+    {quoted, suffix} = to_quoted(code)
+
     result =
       case direction do
         "from_pipe" ->
-          code |> Code.string_to_quoted!() |> from_pipe() |> Macro.to_string()
+          quoted |> from_pipe() |> Macro.to_string()
 
         "to_pipe" ->
-          code |> Code.string_to_quoted!() |> to_pipe() |> Macro.to_string()
+          quoted |> to_pipe() |> Macro.to_string()
       end
 
-    IO.puts(result)
+    IO.puts(String.trim_trailing(result, suffix))
   end
 
   def from_pipe(code) do
@@ -77,11 +79,28 @@ defmodule ExPlumberEscript.CLI do
     {{:|>, line, [left |> to_pipe(acc) |> elem(0), right]}, Map.put(acc, :has_piped, true)}
   end
 
+  defp to_pipe({{:., line, args} = function, meta, [h | t]}, %{has_piped: false} = acc) do
+    {{:|>, line, [h, {function, line, t}]}, Map.put(acc, :has_piped, true)}
+  end
+
   defp to_pipe({function, line, [h | t]}, %{has_piped: false} = acc) when is_atom(function) do
     {{:|>, line, [h, {function, line, t}]}, Map.put(acc, :has_piped, true)}
   end
 
   defp to_pipe(node, acc) do
     {node, acc}
+  end
+
+  def to_quoted(str, suffix \\ "") do
+    case Code.string_to_quoted(str) do
+      {:ok, x} ->
+        {x, suffix}
+
+      {:error, {_, <<"missing terminator: ", x::binary-size(1), _::bitstring>>, _}} ->
+        to_quoted(str <> x, suffix <> x)
+
+      err ->
+        err
+    end
   end
 end
